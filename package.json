@@ -9,15 +9,27 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onLanguage:ocaml"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "ocha-platform.helloWorld",
-        "title": "Hello World"
+        "command": "Ocha.evaluateBuffer",
+        "title": "Ocha: Save and Evaluate Buffer",
+        "icon": "./media/resume.png"
       }
-    ]
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "Ocha.evaluateBuffer",
+          "group": "navigation",
+          "when": "resourceLangId == ocaml"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
