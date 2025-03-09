@@ -22,7 +22,10 @@ async function evaluateBuffer(context: vscode.ExtensionContext) {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return;
 
-  if (editor.document.isDirty) editor.document.save();
+  if (editor.document.isDirty) {
+    const result = await editor.document.save();
+    if (!result) return;
+  }
 
   const ocamlCommand = await vscode.window.showInputBox({
     title: "OCaml toplevel to run",
