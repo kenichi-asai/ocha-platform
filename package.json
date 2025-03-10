@@ -19,13 +19,73 @@
         "command": "Ocha.evaluateBuffer",
         "title": "Ocha: Save and Evaluate Buffer",
         "icon": "./media/resume.png"
+      },
+      {
+        "command": "Ocha.stepper.start",
+        "title": "Ocha: Save and Start Stepper",
+        "icon": "./media/start.png"
+      },
+      {
+        "command": "Ocha.stepper.next",
+        "title": "Ocha: Next Step",
+        "icon": "./media/next.png"
+      },
+      {
+        "command": "Ocha.stepper.prev",
+        "title": "Ocha: Previous Step",
+        "icon": "./media/prev.png"
+      },
+      {
+        "command": "Ocha.stepper.skip",
+        "title": "Ocha: Skip",
+        "icon": "./media/skip.png"
+      },
+      {
+        "command": "Ocha.stepper.forward",
+        "title": "Ocha: Forward",
+        "icon": "./media/forward.png"
+      },
+      {
+        "command": "Ocha.stepper.end",
+        "title": "Ocha: Stepper End",
+        "icon": "./media/end.png"
       }
     ],
     "menus": {
       "editor/title": [
         {
           "command": "Ocha.evaluateBuffer",
-          "group": "navigation",
+          "group": "navigation@-1",
+          "when": "resourceLangId == ocaml"
+        },
+        {
+          "command": "Ocha.stepper.start",
+          "group": "navigation@-7",
+          "when": "resourceLangId == ocaml"
+        },
+        {
+          "command": "Ocha.stepper.next",
+          "group": "navigation@-5",
+          "when": "resourceLangId == ocaml"
+        },
+        {
+          "command": "Ocha.stepper.prev",
+          "group": "navigation@-6",
+          "when": "resourceLangId == ocaml"
+        },
+        {
+          "command": "Ocha.stepper.skip",
+          "group": "navigation@-4",
+          "when": "resourceLangId == ocaml"
+        },
+        {
+          "command": "Ocha.stepper.forward",
+          "group": "navigation@-3",
+          "when": "resourceLangId == ocaml"
+        },
+        {
+          "command": "Ocha.stepper.end",
+          "group": "navigation@-2",
           "when": "resourceLangId == ocaml"
         }
       ]
