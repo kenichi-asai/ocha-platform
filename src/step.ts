@@ -561,13 +561,21 @@ function stepperNext(mode: string) {
     (mode === "next" && afterPrev && currentlySkip ||
       mode === "skip" && !currentlySkip
       ? currentProgram : nextProgram);
-  /* the behavior of stepper when the current status is 3 -> 4:
-     (have to confirm)
-       stepper("next", 4) = 4 -> 5
-       stepper("skip", 3) = 3 -> 29 when skip is possible
-       stepper("skip", 3) = 4 -> 5  when skip is not possible
-     the behavior of stepper when the current status is 3 -> 29:
-       stepper("skip", 3) = 29 -> 30 (or 35 is skip is possible)
+  /* when the current status is 3 -> 4:
+       x stepper("next", 3) = 3 -> 4
+       o stepper("next", 4) = 4 -> 5
+       o stepper("skip", 3) = 3 -> 29 when skip is possible
+       o stepper("skip", 3) = 4 -> 5  when skip is not possible (!)
+     when the current status is 3 -> 29 (not after prev):
+       o stepper("next", 29) = 29 -> 30
+       x stepper("next", 3) = 3 -> 4
+       - stepper("skip", 29) = 29 -> 39 (o) or 30 -> 31 (x)
+       x stepper("skip", 3) = 3 -> 29
+     when the current status is 3 -> 29 (after prev):
+       x stepper("next", 29) = 29 -> 30
+       o stepper("next", 3) = 3 -> 4
+       x stepper("skip", 29) = 29 -> 39 (x) or 30 -> 35 (x)
+       o stepper("skip", 3) = 3 -> 29
   */
   fs.writeFileSync(fd, program);
 
