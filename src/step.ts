@@ -557,25 +557,33 @@ function stepperNext(mode: string) {
 
   // save the next program for step execution
   const fd = fs.openSync(tmpMlFileName, "w");
-  const program =
-    (mode === "next" && afterPrev && currentlySkip ||
-      mode === "skip" && !currentlySkip
-      ? currentProgram : nextProgram);
+  let program = nextProgram; // (A)
+  if (mode === "next" && afterPrev && currentlySkip) {
+    program = currentProgram; // (B)
+  } else if (mode === "skip") {
+    if (currentlySkip) {
+      mode = "next"; // (C)
+    } else {
+      program = currentProgram; // (D)
+    }
+  }
   /* when the current status is 3 -> 4:
        x stepper("next", 3) = 3 -> 4
-       o stepper("next", 4) = 4 -> 5
-       o stepper("skip", 3) = 3 -> 29 when skip is possible
-       o stepper("skip", 3) = 4 -> 5  when skip is not possible (!)
+   (A) o stepper("next", 4) = 4 -> 5
+   (D) o stepper("skip", 3) = 3 -> 29 when skip is possible
+   (D) o stepper("skip", 3) = 4 -> 5  when skip is not possible (!)
      when the current status is 3 -> 29 (not after prev):
-       o stepper("next", 29) = 29 -> 30
+   (A) o stepper("next", 29) = 29 -> 30
        x stepper("next", 3) = 3 -> 4
-       - stepper("skip", 29) = 29 -> 39 (o) or 30 -> 31 (x)
+       - stepper("skip", 29) = 29 -> 39 (-) or 30 -> 31 (x)
+   (C)-> stepper("next", 29) = 29 -> 30
        x stepper("skip", 3) = 3 -> 29
      when the current status is 3 -> 29 (after prev):
        x stepper("next", 29) = 29 -> 30
-       o stepper("next", 3) = 3 -> 4
-       x stepper("skip", 29) = 29 -> 39 (x) or 30 -> 35 (x)
-       o stepper("skip", 3) = 3 -> 29
+   (B) o stepper("next", 3) = 3 -> 4
+       - stepper("skip", 29) = 29 -> 39 (-) or 30 -> 31 (x)
+   (C)-> stepper("next", 29) = 29 -> 30
+       x stepper("skip", 3) = 3 -> 29
   */
   fs.writeFileSync(fd, program);
 
