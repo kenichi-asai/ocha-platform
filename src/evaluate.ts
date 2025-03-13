@@ -6,7 +6,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   // The command has been defined in the package.json file
   const evaluateBufferCommand = vscode.commands.registerCommand(
-    "Ocha.evaluateBuffer", () => { evaluateBuffer(context); }
+    "Ocha.evaluateBuffer", () => { evaluateBuffer(); }
   );
   context.subscriptions.push(evaluateBufferCommand);
 }
@@ -18,7 +18,7 @@ export function deactivate() { }
 let terminal: vscode.Terminal;
 
 // called when "Ocha.evaluateBuffer" is executed
-async function evaluateBuffer(context: vscode.ExtensionContext) {
+async function evaluateBuffer() {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return;
 
