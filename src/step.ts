@@ -213,7 +213,7 @@ async function showStep(text: string) {
   const redexExpL = findMatchingIndex(parenLst, redexExpR)!;
 
   // find second [@@@stepper.process ...]
-  const stepperProcessL2 = text.indexOf("[@@@stepper.process", redexL)!;
+  const stepperProcessL2 = text.indexOf("[@@@stepper.process", redexL);
   if (stepperProcessL2 === -1) {
     console.log(text);
     console.log("Second stepper.process not found.");
@@ -265,8 +265,8 @@ async function showStep(text: string) {
     // [@stepper.ref_env] exists
     stepperRefEnvR2 = stepperRefEnvL2 + "[@stepper.ref_env]".length - 1;
     refEnvR2 = stepperRefEnvL2 - 1;
-    console.log(text);
-    console.log(refEnvR2);
+    // console.log(text);
+    // console.log(refEnvR2);
     while (text[refEnvR2] !== ")") refEnvR2--;
     refEnvL2 = findMatchingIndex(parenLst, refEnvR2)!;
   }
@@ -375,13 +375,11 @@ async function showStep(text: string) {
 
   // save the current program
   currentProgram = text.substring(stepperCounter1, stepperProcessR1);
-  console.log("current");
-  console.log(currentProgram);
+  // console.log(currentProgram);
 
   // save the next program to be executed
   nextProgram = text.substring(stepperCounter2, stepperProcessR2);
-  console.log("next");
-  console.log(nextProgram);
+  // console.log(nextProgram);
 
   // wait for the document to create an editor
   await vscode.window.showTextDocument(stepperDocument);
@@ -428,7 +426,7 @@ async function showStep(text: string) {
   const counter0 = Number(result2[0]![1]);
   const counter1 = Number(result2[1]![1]);
   currentlySkip = (counter1 - counter0 === 1 ? 0 : 1);
-  console.log(currentlySkip);
+  // console.log(currentlySkip);
 }
 
 /*
