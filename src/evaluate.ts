@@ -1,8 +1,25 @@
 import * as vscode from "vscode";
+import * as child_process from 'child_process';
+
+// the OCaml command to run
+let ocamlCommandName: string = "";
 
 // called once when the extension is activated
 export function activate(context: vscode.ExtensionContext) {
   console.log('"ocha.evaluate" is now active!');
+
+  // Determine the OCaml command to run
+  try {
+    child_process.execSync("utop -version");
+    ocamlCommandName = "utop";
+  } catch (error) {
+    try {
+      child_process.execSync("rlwrap -version");
+      ocamlCommandName = "rlwrap ocaml";
+    } catch (error) {
+      ocamlCommandName = "ocaml";
+    }
+  }
 
   // The command has been defined in the package.json file
   const evaluateBufferCommand = vscode.commands.registerCommand(
@@ -29,7 +46,7 @@ async function evaluateBuffer() {
 
   const ocamlCommand = await vscode.window.showInputBox({
     title: "OCaml toplevel to run",
-    value: "utop"
+    value: ocamlCommandName
   })
   if (!ocamlCommand) return;
 
