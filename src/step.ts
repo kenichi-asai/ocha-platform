@@ -30,6 +30,9 @@ const printedType = vscode.window.createTextEditorDecorationType({
   backgroundColor: 'rgba(255, 192, 203, 0.6)',
 });
 
+// whether stepper is installed or not
+let stepperInstalled: boolean = false;
+
 // step execution history (for prev button)
 let history: string[] = [];
 
@@ -82,6 +85,14 @@ export async function activate(context: vscode.ExtensionContext) {
     "Ocha.stepper.end", () => { stepperEnd(); }
   );
   context.subscriptions.push(stepperEndCommand);
+
+  // check if a stepper is installed
+  try {
+    child_process.execSync("stepper -version");
+    stepperInstalled = true;
+  } catch (error) {
+    console.log("stepper is not installed");
+  }
 }
 
 // called once when the extension is deactivated
@@ -89,6 +100,10 @@ export function deactivate() { }
 
 // called when "Ocha.stepper.start" is executed
 async function stepperStart() {
+  if (!stepperInstalled) {
+    vscode.window.showInformationMessage("Stepper not installed.");
+    return;
+  }
   if (history.length > 0) {
     vscode.window.showInformationMessage("Stepper is already running.");
     return;
@@ -548,6 +563,10 @@ function findMatchingIndex(lst: number[][], i: number): number | undefined {
 // called when "Ocha.stepper.next/skip/forward" is executed
 // mode is either "next", "skip", or "nextitem" (for "forward")
 function stepperNext(mode: string) {
+  if (!stepperInstalled) {
+    vscode.window.showInformationMessage("Stepper not installed.");
+    return;
+  }
   if (history.length === 0) {
     vscode.window.showInformationMessage("Stepper not started yet.");
     return;
@@ -597,6 +616,10 @@ function stepperNext(mode: string) {
 
 // called when "Ocha.stepper.prev" is executed
 function stepperPrev() {
+  if (!stepperInstalled) {
+    vscode.window.showInformationMessage("Stepper not installed.");
+    return;
+  }
   if (history.length === 0) {
     vscode.window.showInformationMessage("Stepper not started yet.");
     return;
@@ -616,6 +639,10 @@ function stepperPrev() {
 
 // called when "Ocha.stepper.end" is executed
 function stepperEnd() {
+  if (!stepperInstalled) {
+    vscode.window.showInformationMessage("Stepper not installed.");
+    return;
+  }
   if (history.length === 0) {
     vscode.window.showInformationMessage("Stepper not running.");
     return;
