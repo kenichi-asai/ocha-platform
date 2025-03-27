@@ -56,37 +56,37 @@
         {
           "command": "Ocha.evaluateBuffer",
           "group": "navigation@-1",
-          "when": "resourceLangId == ocaml"
+          "when": "resourceLangId == ocaml && !ochaPlatform.inStepperDocument"
         },
         {
           "command": "Ocha.stepper.start",
           "group": "navigation@-7",
-          "when": "resourceLangId == ocaml"
-        },
-        {
-          "command": "Ocha.stepper.next",
-          "group": "navigation@-5",
-          "when": "resourceLangId == ocaml"
+          "when": "resourceLangId == ocaml && ochaPlatform.stepperInstalled && !ochaPlatform.stepperRunning"
         },
         {
           "command": "Ocha.stepper.prev",
           "group": "navigation@-6",
-          "when": "resourceLangId == ocaml"
+          "when": "resourceLangId == ocaml && ochaPlatform.stepperRunning"
+        },
+        {
+          "command": "Ocha.stepper.next",
+          "group": "navigation@-5",
+          "when": "resourceLangId == ocaml && ochaPlatform.stepperRunning"
         },
         {
           "command": "Ocha.stepper.skip",
           "group": "navigation@-4",
-          "when": "resourceLangId == ocaml"
+          "when": "resourceLangId == ocaml && ochaPlatform.stepperRunning"
         },
         {
           "command": "Ocha.stepper.forward",
           "group": "navigation@-3",
-          "when": "resourceLangId == ocaml"
+          "when": "resourceLangId == ocaml && ochaPlatform.stepperRunning"
         },
         {
           "command": "Ocha.stepper.end",
           "group": "navigation@-2",
-          "when": "resourceLangId == ocaml"
+          "when": "resourceLangId == ocaml && ochaPlatform.stepperRunning"
         }
       ]
     }

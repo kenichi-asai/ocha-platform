@@ -51,6 +51,9 @@ let currentlySkip = 0;
 // document for showing the current step
 let stepperDocument: vscode.TextDocument;
 
+// disposable for event listeners of active text editors
+let disposable: vscode.Disposable;
+
 // called once when the extension is activated
 export async function activate(context: vscode.ExtensionContext) {
   console.log('"ocha.step" is now active!');
@@ -90,7 +93,13 @@ export async function activate(context: vscode.ExtensionContext) {
   try {
     child_process.execSync("stepper -version");
     stepperInstalled = true;
+    vscode.commands.executeCommand('setContext',
+      'ochaPlatform.stepperInstalled', true);
+    vscode.commands.executeCommand('setContext',
+      'ochaPlatform.stepperRunning', false);
   } catch (error) {
+    vscode.commands.executeCommand('setContext',
+      'ochaPlatform.stepperInstalled', false);
     console.log("stepper is not installed");
   }
 }
@@ -129,6 +138,18 @@ async function stepperStart() {
     content: "a stepper document to show a step",
     language: 'ocaml'
   });
+
+  // set up an event listener for changes of the active editor
+  disposable = vscode.window.onDidChangeActiveTextEditor((editor) => {
+    if (editor) {
+      vscode.commands.executeCommand('setContext',
+        'ochaPlatform.inStepperDocument',
+        editor.document === stepperDocument);
+    }
+  });
+
+  vscode.commands.executeCommand('setContext',
+    'ochaPlatform.stepperRunning', true);
 
   // show a step
   showStep(text);
@@ -638,7 +659,7 @@ function stepperPrev() {
 }
 
 // called when "Ocha.stepper.end" is executed
-function stepperEnd() {
+async function stepperEnd() {
   if (!stepperInstalled) {
     vscode.window.showInformationMessage("Stepper not installed.");
     return;
@@ -648,6 +669,16 @@ function stepperEnd() {
     return;
   }
   history = [];
+  vscode.commands.executeCommand('setContext',
+    'ochaPlatform.stepperRunning', false);
+
+  // show stepperDocument
+  await vscode.window.showTextDocument(stepperDocument);
+
+  // dispose event listeners of active text editors
+  disposable.dispose();
+  vscode.commands.executeCommand('setContext',
+    'ochaPlatform.inStepperDocument', false);
 
   // close stepperDocument without saving it
   vscode.commands.executeCommand('workbench.action.revertAndCloseActiveEditor',
