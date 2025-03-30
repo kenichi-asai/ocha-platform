@@ -26,6 +26,16 @@ export function activate(context: vscode.ExtensionContext) {
     "Ocha.evaluateBuffer", () => { evaluateBuffer(); }
   );
   context.subscriptions.push(evaluateBufferCommand);
+
+  const makeCommand = vscode.commands.registerCommand(
+    "Ocha.make", () => { make(); }
+  );
+  context.subscriptions.push(makeCommand);
+
+  const setOCamlCommand = vscode.commands.registerCommand(
+    "Ocha.setOCamlCommandName", () => { setOCamlCommandName(); }
+  );
+  context.subscriptions.push(setOCamlCommand);
 }
 
 // called once when the extension is deactivated
@@ -44,21 +54,43 @@ export async function evaluateBuffer() {
     if (!result) return;
   }
 
-  const ocamlCommand = await vscode.window.showInputBox({
-    title: "OCaml toplevel to run",
-    value: ocamlCommandName
-  })
-  if (!ocamlCommand) return;
+  if (terminal) { terminal.dispose(); }
+  terminal = vscode.window.createTerminal('ochaterm');
+  terminal.show();
+
+  await sendText(terminal, ocamlCommandName);
+  await sendText(terminal, '#use "' + editor.document.fileName + '";;');
+}
+
+// send text to terminal
+async function sendText(terminal: vscode.Terminal, text: string) {
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  terminal.sendText(text);
+}
+
+// called when "Ocha.make" is executed
+async function make() {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) return;
+
+  if (editor.document.isDirty) {
+    const result = await editor.document.save();
+    if (!result) return;
+  }
 
   if (terminal) { terminal.dispose(); }
   terminal = vscode.window.createTerminal('ochaterm');
   terminal.show();
 
-  await sendText(terminal, ocamlCommand);
-  await sendText(terminal, '#use "' + editor.document.fileName + '";;');
+  await sendText(terminal, "make");
 }
 
-async function sendText(terminal: vscode.Terminal, text: string) {
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  terminal.sendText(text);
+// called when "Ocha.setOCamlCommand" is executed
+async function setOCamlCommandName() {
+  const ocamlCommand = await vscode.window.showInputBox({
+    title: "OCaml toplevel to run",
+    value: ocamlCommandName
+  })
+  if (!ocamlCommand) return;
+  ocamlCommandName = ocamlCommand;
 }

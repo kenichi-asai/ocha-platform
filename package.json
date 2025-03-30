@@ -21,6 +21,16 @@
         "icon": "./media/resume.png"
       },
       {
+        "command": "Ocha.make",
+        "title": "Ocha: Make",
+        "icon": "./media/n.png"
+      },
+      {
+        "command": "Ocha.setOCamlCommandName",
+        "title": "Ocha: Set OCaml Command Name",
+        "icon": "./media/y.png"
+      },
+      {
         "command": "Ocha.stepper.start",
         "title": "Ocha: Save and Start Stepper",
         "icon": "./media/start.png"
@@ -54,38 +64,48 @@
     "menus": {
       "editor/title": [
         {
-          "command": "Ocha.evaluateBuffer",
+          "command": "Ocha.setOCamlCommandName",
           "group": "navigation@-1",
           "when": "resourceLangId == ocaml && !ochaPlatform.inStepperDocument"
         },
         {
+          "command": "Ocha.make",
+          "group": "navigation@-2",
+          "when": "resourceLangId == ocaml && !ochaPlatform.inStepperDocument"
+        },
+        {
+          "command": "Ocha.evaluateBuffer",
+          "group": "navigation@-3",
+          "when": "resourceLangId == ocaml && !ochaPlatform.inStepperDocument"
+        },
+        {
           "command": "Ocha.stepper.start",
-          "group": "navigation@-7",
+          "group": "navigation@-16",
           "when": "resourceLangId == ocaml && ochaPlatform.stepperInstalled && !ochaPlatform.stepperRunning"
         },
         {
           "command": "Ocha.stepper.prev",
-          "group": "navigation@-6",
+          "group": "navigation@-15",
           "when": "resourceLangId == ocaml && ochaPlatform.stepperRunning"
         },
         {
           "command": "Ocha.stepper.next",
-          "group": "navigation@-5",
+          "group": "navigation@-14",
           "when": "resourceLangId == ocaml && ochaPlatform.stepperRunning"
         },
         {
           "command": "Ocha.stepper.skip",
-          "group": "navigation@-4",
+          "group": "navigation@-13",
           "when": "resourceLangId == ocaml && ochaPlatform.stepperRunning"
         },
         {
           "command": "Ocha.stepper.forward",
-          "group": "navigation@-3",
+          "group": "navigation@-12",
           "when": "resourceLangId == ocaml && ochaPlatform.stepperRunning"
         },
         {
           "command": "Ocha.stepper.end",
-          "group": "navigation@-2",
+          "group": "navigation@-11",
           "when": "resourceLangId == ocaml && ochaPlatform.stepperRunning"
         }
       ]
