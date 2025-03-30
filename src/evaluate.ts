@@ -35,7 +35,7 @@ export function deactivate() { }
 let terminal: vscode.Terminal;
 
 // called when "Ocha.evaluateBuffer" is executed
-async function evaluateBuffer() {
+export async function evaluateBuffer() {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return;
 

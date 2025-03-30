@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import * as child_process from 'child_process';
 import * as fs from "fs";
+import * as evaluate from "./evaluate"
 
 const tmpFileName = "/tmp/ochaTmpFile";
 const tmpMlFileName = tmpFileName + ".ml";
@@ -129,30 +130,34 @@ async function stepperStart() {
   // absolute path of the file to be step executed
   const path = editor.document.uri.path;
 
-  // execute stepper
-  const text = executeStepper("next", path);
-  if (!text) return;
+  try {
+    // execute stepper
+    const text = executeStepper("next", path);
+    if (!text) return;
 
-  // create a stepper document
-  stepperDocument = await vscode.workspace.openTextDocument({
-    content: "a stepper document to show a step",
-    language: 'ocaml'
-  });
+    // create a stepper document
+    stepperDocument = await vscode.workspace.openTextDocument({
+      content: "a stepper document to show a step",
+      language: 'ocaml'
+    });
 
-  // set up an event listener for changes of the active editor
-  disposable = vscode.window.onDidChangeActiveTextEditor((editor) => {
-    if (editor) {
-      vscode.commands.executeCommand('setContext',
-        'ochaPlatform.inStepperDocument',
-        editor.document === stepperDocument);
-    }
-  });
+    // set up an event listener for changes of the active editor
+    disposable = vscode.window.onDidChangeActiveTextEditor((editor) => {
+      if (editor) {
+        vscode.commands.executeCommand('setContext',
+          'ochaPlatform.inStepperDocument',
+          editor.document === stepperDocument);
+      }
+    });
 
-  vscode.commands.executeCommand('setContext',
-    'ochaPlatform.stepperRunning', true);
+    vscode.commands.executeCommand('setContext',
+      'ochaPlatform.stepperRunning', true);
 
-  // show a step
-  showStep(text);
+    // show a step
+    showStep(text);
+  } catch (e) {
+    evaluate.evaluateBuffer();
+  }
 }
 
 // make decorations from indexL to indexR
