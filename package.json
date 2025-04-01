@@ -22,13 +22,13 @@
       },
       {
         "command": "Ocha.make",
-        "title": "Ocha: Make",
-        "icon": "./media/n.png"
+        "title": "Ocha: Save and Make",
+        "icon": "$(run)"
       },
       {
         "command": "Ocha.setOCamlCommandName",
         "title": "Ocha: Set OCaml Command Name",
-        "icon": "./media/y.png"
+        "icon": "$(settings-gear)"
       },
       {
         "command": "Ocha.stepper.start",
