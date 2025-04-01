@@ -1,7 +1,7 @@
 {
   "name": "ocha-platform",
   "displayName": "ocha-platform",
-  "description": "OCaml environment for execution, stepper, and type debugger",
+  "description": "OCaml environment for execution and step execution",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.97.0"
@@ -135,5 +135,11 @@
     "webpack-cli": "^6.0.1",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1"
-  }
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kenichi-asai/ocha-platform.git"
+  },
+  "homepage": "https://github.com/kenichi-asai/ocha-platform"
 }
