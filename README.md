@@ -1,55 +1,59 @@
 # ocha-platform README
 
-This is the README for your extension "ocha-platform". After writing up a brief description, we recommend including the following sections.
+This is a Visual Studio Code extension for evaluating and step
+executing OCaml programs.  It is used in the functional programming
+course in Ochanomizu University.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+### Evaluation
+- Click <img src="media/resume.png" width="15px"> button to save the
+  current file and evaluate it in a terminal.
+- Click ▷ button to save the current
+  file and execute `make` in a terminal.
+- Click settings button to set the
+  command for evaluating OCaml programs.  It defaults to `utop` if
+  `utop` is installed, `rlwrap ocaml` if `rlwrap` is installed,
+  `ocaml` otherwise.
 
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+### Step execution
+- Click <img src="media/start.png" width="15px"> button to start step
+  execution.
+- Click <img src="media/prev.png" width="15px"> button to go back to the
+  previous step.
+- Click <img src="media/next.png" width="15px"> button to go to the next
+  step.
+- Click <img src="media/skip.png" width="15px"> button to evaluate the
+  current expression completely (without showing the steps) and skip to
+  the result.
+- Click <img src="media/forward.png" width="15px"> button to go to the
+  next toplevel definition (such as the next test case).
+- Click <img src="media/end.png" width="15px"> button to end step
+  execution.
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+For step execution, the
+[OCaml Stepper](http://pllab.is.ocha.ac.jp/~asai/Stepper/)
+is required.  The OCaml Stepper supports only OCaml version 4.14.2.
+Install the OCaml Stepper via:
+```
+opam pin add stepper http://pllab.is.ocha.ac.jp/~asai/Stepper/4.14.2/stepper.tar.gz
+```
 
-## Extension Settings
+<!-- ## Known Issues
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
+Calling out known issues can help limit users opening duplicate issues against your extension. -->
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+### 0.0.1
 
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+Initial release
 
 ---
 
-## Following extension guidelines
+<!-- ## Following extension guidelines
 
 Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
 
@@ -68,4 +72,4 @@ You can author your README using Visual Studio Code. Here are some useful editor
 * [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
 * [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
 
-**Enjoy!**
+**Enjoy!** -->
