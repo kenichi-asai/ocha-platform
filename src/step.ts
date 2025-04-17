@@ -7,8 +7,14 @@ const tmpFileName = "/tmp/ochaTmpFile";
 const tmpMlFileName = tmpFileName + ".ml";
 const tmpCmiFileName = tmpFileName + ".cmi";
 
+const kind = vscode.window.activeColorTheme.kind;
+
 const redexType = vscode.window.createTextEditorDecorationType({
-  backgroundColor: 'rgba(184, 235, 184, 0.8)',
+  backgroundColor:
+    (kind === vscode.ColorThemeKind.Light ||
+      kind === vscode.ColorThemeKind.HighContrastLight ?
+      "rgba(184, 235, 184, 0.8)" :
+      "rgba(2, 117, 2, 0.5)")
   // border: '1px solid red',
   // the following does not work...
   // textDecoration: 'none; display none;'
@@ -20,15 +26,27 @@ const redexType = vscode.window.createTextEditorDecorationType({
 });
 
 const reductType = vscode.window.createTextEditorDecorationType({
-  backgroundColor: 'rgba(221, 160, 221, 0.6)',
+  backgroundColor:
+    (kind === vscode.ColorThemeKind.Light ||
+      kind === vscode.ColorThemeKind.HighContrastLight ?
+      "rgba(221, 160, 221, 0.6)" :
+      "rgba(116, 8, 155, 0.5)")
 });
 
 const refEnvType = vscode.window.createTextEditorDecorationType({
-  backgroundColor: 'rgba(223, 228, 245, 0.6)',
+  backgroundColor:
+    (kind === vscode.ColorThemeKind.Light ||
+      kind === vscode.ColorThemeKind.HighContrastLight ?
+      "rgba(223, 228, 245, 0.6)" :
+      "rgba(6, 39, 146, 0.5)")
 });
 
 const printedType = vscode.window.createTextEditorDecorationType({
-  backgroundColor: 'rgba(255, 192, 203, 0.6)',
+  backgroundColor:
+    (kind === vscode.ColorThemeKind.Light ||
+      kind === vscode.ColorThemeKind.HighContrastLight ?
+      "rgba(255, 192, 203, 0.6)" :
+      "rgba(173, 79, 2, 0.5)")
 });
 
 // whether stepper is installed or not
@@ -61,7 +79,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // the commands have been defined in the package.json file
   const stepperStartCommand = vscode.commands.registerCommand(
-    "Ocha.stepper.start", () => { stepperStart(); }
+    "Ocha.stepper.start", () => { stepperStart(context); }
   );
   context.subscriptions.push(stepperStartCommand);
 
@@ -109,7 +127,7 @@ export async function activate(context: vscode.ExtensionContext) {
 export function deactivate() { }
 
 // called when "Ocha.stepper.start" is executed
-async function stepperStart() {
+async function stepperStart(context: vscode.ExtensionContext) {
   if (!stepperInstalled) {
     vscode.window.showInformationMessage("Stepper not installed.");
     return;
@@ -156,7 +174,7 @@ async function stepperStart() {
     // show a step
     showStep(text);
   } catch (e) {
-    evaluate.evaluateBuffer();
+    evaluate.evaluateBuffer(context);
   }
 }
 

@@ -1,0 +1,21 @@
+#!/usr/bin/expect
+set USAGE "Usage: use-file file (dune utop .|utop|rlwrap ocaml|ocaml)"
+
+# launch ocaml
+if { $argc == 2 } {
+  spawn -noecho [lindex $argv 1]
+} elseif { $argc == 3 } {
+  spawn -noecho [lindex $argv 1] [lindex $argv 2]
+} elseif { $argc == 4 } {
+  spawn -noecho [lindex $argv 1] [lindex $argv 2] [lindex $argv 3]
+} else {
+  puts $USAGE
+  exit
+}
+
+# program to be evaluated
+set PROGRAM [lindex $argv 0]
+
+expect  "# "
+send "#use \"$PROGRAM\";;\n"
+interact

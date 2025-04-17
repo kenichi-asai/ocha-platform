@@ -2,7 +2,7 @@
   "name": "ocha-platform",
   "displayName": "ocha-platform",
   "description": "OCaml environment for execution and step execution",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.97.0"
   },

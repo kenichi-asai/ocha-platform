@@ -1,4 +1,4 @@
-# ocha-platform README
+# ocha-platform
 
 This is a Visual Studio Code extension for evaluating and step
 executing OCaml programs.  It is used in the functional programming
@@ -44,14 +44,6 @@ opam pin add stepper http://pllab.is.ocha.ac.jp/~asai/Stepper/4.14.2/stepper.tar
 <!-- ## Known Issues
 
 Calling out known issues can help limit users opening duplicate issues against your extension. -->
-
-## Release Notes
-
-### 0.0.1
-
-Initial release
-
----
 
 <!-- ## Following extension guidelines
 

@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import * as child_process from 'child_process';
+import * as path from 'path';
 
 // the OCaml command to run
 let ocamlCommandName: string = "";
@@ -11,7 +12,12 @@ export function activate(context: vscode.ExtensionContext) {
   // Determine the OCaml command to run
   try {
     child_process.execSync("utop -version");
-    ocamlCommandName = "utop";
+    try {
+      child_process.execSync("dune --version");
+      ocamlCommandName = "dune utop .";
+    } catch (error) {
+      ocamlCommandName = "utop";
+    }
   } catch (error) {
     try {
       child_process.execSync("rlwrap -version");
@@ -23,7 +29,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   // The command has been defined in the package.json file
   const evaluateBufferCommand = vscode.commands.registerCommand(
-    "Ocha.evaluateBuffer", () => { evaluateBuffer(); }
+    "Ocha.evaluateBuffer", () => { evaluateBuffer(context); }
   );
   context.subscriptions.push(evaluateBufferCommand);
 
@@ -45,7 +51,7 @@ export function deactivate() { }
 let terminal: vscode.Terminal;
 
 // called when "Ocha.evaluateBuffer" is executed
-export async function evaluateBuffer() {
+export async function evaluateBuffer(context: vscode.ExtensionContext) {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return;
 
@@ -54,12 +60,48 @@ export async function evaluateBuffer() {
     if (!result) return;
   }
 
+  const cwd = path.dirname(editor.document.uri.fsPath);
+
+  // check if dune-project exists
+  if (ocamlCommandName === "dune utop .") {
+    const duneProjectUri = vscode.Uri.file(cwd + "/dune-project");
+    const exists = await fileExists(duneProjectUri);
+    if (!exists) {
+      ocamlCommandName = "utop";
+    }
+  }
+
   if (terminal) { terminal.dispose(); }
-  terminal = vscode.window.createTerminal('ochaterm');
+  terminal = vscode.window.createTerminal({
+    name: 'ochaterm',
+    cwd: cwd
+  });
   terminal.show();
 
-  await sendText(terminal, ocamlCommandName);
-  await sendText(terminal, '#use "' + editor.document.fileName + '";;');
+  const scriptPath: string = context.extensionPath + "/scripts/use-file";
+
+  try {
+    child_process.execSync("/usr/bin/expect -v");
+    await sendText(terminal,
+      scriptPath + " " + editor.document.fileName + " " + ocamlCommandName);
+  } catch (error) {
+    await sendText(terminal, ocamlCommandName);
+    await sendText(terminal, '#use "' + editor.document.fileName + '";;');
+  }
+}
+
+// check if a given file exists
+async function fileExists(uri: vscode.Uri): Promise<boolean> {
+  try {
+    await vscode.workspace.fs.stat(uri);
+    return true;
+  } catch (err: any) {
+    if (err.code === 'FileNotFound' || err.name === 'EntryNotFound' ||
+      err.message.includes('ENOENT')) {
+      return false;
+    }
+    throw err; // Rethrow if it's a different error
+  }
 }
 
 // send text to terminal
