@@ -229,6 +229,8 @@ function executeStepper(mode: string, path: string): string | undefined {
   let text = child_process.execSync(command).toString();
   // console.log(text);
 
+  if (text === "") return;
+
   const index = text.indexOf("(* Stepper Error: No more steps. *)");
   if (index >= 0) {
     vscode.window.showInformationMessage("No more steps.");
