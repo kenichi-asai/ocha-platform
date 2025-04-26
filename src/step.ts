@@ -7,6 +7,8 @@ const tmpFileName = "/tmp/ochaTmpFile";
 const tmpMlFileName = tmpFileName + ".ml";
 const tmpCmiFileName = tmpFileName + ".cmi";
 
+let stepperPath: string = "stepper";
+
 const kind = vscode.window.activeColorTheme.kind;
 
 const redexType = vscode.window.createTextEditorDecorationType({
@@ -107,6 +109,10 @@ export async function activate(context: vscode.ExtensionContext) {
     "Ocha.stepper.end", () => { stepperEnd(); }
   );
   context.subscriptions.push(stepperEndCommand);
+
+  // TODO: should switch between stepper and ocha-stepper according to
+  // a global flag
+  stepperPath = context.extensionPath + "/scripts/ocha-stepper";
 
   // check if a stepper is installed
   try {
@@ -224,7 +230,7 @@ async function replaceContents(editor: vscode.TextEditor, text: string) {
 
 // execute stepper
 function executeStepper(mode: string, path: string): string | undefined {
-  const command = "env STEPPER_MODE=" + mode + " stepper " + path;
+  const command = "env STEPPER_MODE=" + mode + " " + stepperPath + " " + path;
   // console.log(command);
   let text = child_process.execSync(command).toString();
   // console.log(text);
