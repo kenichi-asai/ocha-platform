@@ -9,6 +9,7 @@ for recommendations on how to structure this file.
 ## [0.0.3] - 2025-04-26
 
 - Launch evaluateBuffer when stepper produces no output
+- Use ocha-stepper to expand metro etc
 
 ## [0.0.2] - 2025-04-17
 
