@@ -151,7 +151,10 @@ async function stepperStart(context: vscode.ExtensionContext) {
   try {
     // execute stepper
     const text = executeStepper("next", path);
-    if (!text) return;
+    if (!text) {
+      evaluate.evaluateBuffer(context);
+      return;
+    }
 
     // create a stepper document
     stepperDocument = await vscode.workspace.openTextDocument({
