@@ -5,6 +5,9 @@ import * as path from 'path';
 // the OCaml command to run
 let ocamlCommandName: string = "";
 
+// whether dune and utop are both installed
+let duneUtopInstalled: boolean = false;
+
 // called once when the extension is activated
 export function activate(context: vscode.ExtensionContext) {
   console.log('"ocha.evaluate" is now active!');
@@ -14,7 +17,8 @@ export function activate(context: vscode.ExtensionContext) {
     child_process.execSync("utop -version");
     try {
       child_process.execSync("dune --version");
-      ocamlCommandName = "dune utop .";
+      duneUtopInstalled = true;
+      ocamlCommandName = "dune utop";
     } catch (error) {
       ocamlCommandName = "utop";
     }
@@ -60,13 +64,16 @@ export async function evaluateBuffer(context: vscode.ExtensionContext) {
     if (!result) return;
   }
 
-  const cwd = path.dirname(editor.document.uri.fsPath);
+  let projectRootDir = path.dirname(editor.document.uri.fsPath);
 
-  // check if dune-project exists
-  if (ocamlCommandName === "dune utop .") {
-    const duneProjectUri = vscode.Uri.file(cwd + "/dune-project");
-    const exists = await fileExists(duneProjectUri);
-    if (!exists) {
+  // check if the file to be executed is in the dune project
+  if (duneUtopInstalled) {
+    try {
+      projectRootDir = child_process.execSync(
+        context.extensionPath +
+        "/scripts/show-root " + projectRootDir).toString().trim();
+      ocamlCommandName = "dune utop";
+    } catch (error) {
       ocamlCommandName = "utop";
     }
   }
@@ -74,16 +81,16 @@ export async function evaluateBuffer(context: vscode.ExtensionContext) {
   if (terminal) { terminal.dispose(); }
   terminal = vscode.window.createTerminal({
     name: 'ochaterm',
-    cwd: cwd
+    cwd: projectRootDir
   });
   terminal.show();
 
-  const scriptPath: string = context.extensionPath + "/scripts/use-file";
+  const useFilePath: string = context.extensionPath + "/scripts/use-file";
 
   try {
     child_process.execSync("/usr/bin/expect -v");
     await sendText(terminal,
-      scriptPath + " " + editor.document.fileName + " " + ocamlCommandName);
+      useFilePath + " " + editor.document.fileName + " " + ocamlCommandName);
   } catch (error) {
     await sendText(terminal, ocamlCommandName);
     await sendText(terminal, '#use "' + editor.document.fileName + '";;');
