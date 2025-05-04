@@ -81,7 +81,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // the commands have been defined in the package.json file
   const stepperStartCommand = vscode.commands.registerCommand(
-    "Ocha.stepper.start", () => { stepperStart(context); }
+    "Ocha.stepper.start", () => { stepperStart(); }
   );
   context.subscriptions.push(stepperStartCommand);
 
@@ -133,7 +133,7 @@ export async function activate(context: vscode.ExtensionContext) {
 export function deactivate() { }
 
 // called when "Ocha.stepper.start" is executed
-async function stepperStart(context: vscode.ExtensionContext) {
+async function stepperStart() {
   if (!stepperInstalled) {
     vscode.window.showInformationMessage("Stepper not installed.");
     return;
@@ -158,7 +158,7 @@ async function stepperStart(context: vscode.ExtensionContext) {
     // execute stepper
     const text = executeStepper("next", path);
     if (!text) {
-      evaluate.evaluateBuffer(context);
+      evaluate.evaluateBuffer();
       return;
     }
 
@@ -183,7 +183,7 @@ async function stepperStart(context: vscode.ExtensionContext) {
     // show a step
     showStep(text);
   } catch (e) {
-    evaluate.evaluateBuffer(context);
+    evaluate.evaluateBuffer();
   }
 }
 

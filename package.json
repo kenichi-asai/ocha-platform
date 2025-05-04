@@ -21,8 +21,8 @@
         "icon": "./media/resume.png"
       },
       {
-        "command": "Ocha.make",
-        "title": "Ocha: Save and Make",
+        "command": "Ocha.build",
+        "title": "Ocha: Save and Dune Build",
         "icon": "$(run)"
       },
       {
@@ -69,7 +69,7 @@
           "when": "resourceLangId == ocaml && !ochaPlatform.inStepperDocument"
         },
         {
-          "command": "Ocha.make",
+          "command": "Ocha.build",
           "group": "navigation@-2",
           "when": "resourceLangId == ocaml && !ochaPlatform.inStepperDocument"
         },

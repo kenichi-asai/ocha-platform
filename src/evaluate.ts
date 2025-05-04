@@ -5,19 +5,28 @@ import * as path from 'path';
 // the OCaml command to run
 let ocamlCommandName: string = "";
 
-// whether dune and utop are both installed
-let duneUtopInstalled: boolean = false;
+// whether dune is installed
+let duneInstalled: boolean = false;
+
+// whether utop is installed
+let utopInstalled: boolean = false;
+
+// the path to ocha-platform extension
+let extensionPath: string = "";
 
 // called once when the extension is activated
 export function activate(context: vscode.ExtensionContext) {
   console.log('"ocha.evaluate" is now active!');
 
+  extensionPath = context.extensionPath;
+
   // Determine the OCaml command to run
   try {
     child_process.execSync("utop -version");
+    utopInstalled = true;
     try {
       child_process.execSync("dune --version");
-      duneUtopInstalled = true;
+      duneInstalled = true;
       ocamlCommandName = "dune utop";
     } catch (error) {
       ocamlCommandName = "utop";
@@ -33,14 +42,14 @@ export function activate(context: vscode.ExtensionContext) {
 
   // The command has been defined in the package.json file
   const evaluateBufferCommand = vscode.commands.registerCommand(
-    "Ocha.evaluateBuffer", () => { evaluateBuffer(context); }
+    "Ocha.evaluateBuffer", () => { evaluateBuffer(); }
   );
   context.subscriptions.push(evaluateBufferCommand);
 
-  const makeCommand = vscode.commands.registerCommand(
-    "Ocha.make", () => { make(); }
+  const buildCommand = vscode.commands.registerCommand(
+    "Ocha.build", () => { build(); }
   );
-  context.subscriptions.push(makeCommand);
+  context.subscriptions.push(buildCommand);
 
   const setOCamlCommand = vscode.commands.registerCommand(
     "Ocha.setOCamlCommandName", () => { setOCamlCommandName(); }
@@ -55,7 +64,7 @@ export function deactivate() { }
 let terminal: vscode.Terminal;
 
 // called when "Ocha.evaluateBuffer" is executed
-export async function evaluateBuffer(context: vscode.ExtensionContext) {
+export async function evaluateBuffer() {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return;
 
@@ -67,11 +76,10 @@ export async function evaluateBuffer(context: vscode.ExtensionContext) {
   let projectRootDir = path.dirname(editor.document.uri.fsPath);
 
   // check if the file to be executed is in the dune project
-  if (duneUtopInstalled) {
+  if (utopInstalled && duneInstalled) {
     try {
       projectRootDir = child_process.execSync(
-        context.extensionPath +
-        "/scripts/show-root " + projectRootDir).toString().trim();
+        extensionPath + "/scripts/show-root " + projectRootDir).toString().trim();
       ocamlCommandName = "dune utop";
     } catch (error) {
       ocamlCommandName = "utop";
@@ -85,7 +93,7 @@ export async function evaluateBuffer(context: vscode.ExtensionContext) {
   });
   terminal.show();
 
-  const useFilePath: string = context.extensionPath + "/scripts/use-file";
+  const useFilePath: string = extensionPath + "/scripts/use-file";
 
   try {
     child_process.execSync("/usr/bin/expect -v");
@@ -117,8 +125,8 @@ async function sendText(terminal: vscode.Terminal, text: string) {
   terminal.sendText(text);
 }
 
-// called when "Ocha.make" is executed
-async function make() {
+// called when "Ocha.build" is executed
+async function build() {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return;
 
@@ -127,11 +135,29 @@ async function make() {
     if (!result) return;
   }
 
+  let projectRootDir = path.dirname(editor.document.uri.fsPath);
+  let buildCommandName = "make"
+
+  // check if the file to be executed is in the dune project
+  if (duneInstalled) {
+    try {
+      projectRootDir = child_process.execSync(
+        extensionPath +
+        "/scripts/show-root " + projectRootDir).toString().trim();
+      buildCommandName = "dune build";
+    } catch (error) {
+      buildCommandName = "make";
+    }
+  }
+
   if (terminal) { terminal.dispose(); }
-  terminal = vscode.window.createTerminal('ochaterm');
+  terminal = vscode.window.createTerminal({
+    name: 'ochaterm',
+    cwd: projectRootDir
+  });
   terminal.show();
 
-  await sendText(terminal, "make");
+  await sendText(terminal, buildCommandName);
 }
 
 // called when "Ocha.setOCamlCommand" is executed
