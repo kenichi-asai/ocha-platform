@@ -3,5 +3,11 @@ if [ -z "$1" ]; then
   echo "Usage: $0 dir"
 else
   cd $1
-  dune show workspace | grep root | sed -e "s/((root //" -e "s/)//"
+  RESULT="`dune show workspace 2> /dev/null | egrep '^\(\(root .*\)$' |\
+           head -1 | sed -e "s/((root //" -e "s/)//"`"
+  if [ -z "$RESULT" ]; then
+    exit 1
+  else
+    echo $RESULT
+  fi
 fi
