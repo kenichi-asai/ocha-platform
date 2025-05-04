@@ -4,7 +4,7 @@ if [ -z "$1" ]; then
 elif [ "$1" = "-version" ]; then
   echo "4.14.2"
 else
-  TMPFILE="/tmp/$USER-stepper-`date \"+%Y-%m-%d-%H:%M:%S\"`"
+  TMPFILE="/tmp/${USER}_stepper_`date \"+%Y_%m_%d_%H_%M_%S\"`"
   DIR="`dirname $1`"
   if [ "$DIR" = "/tmp" ]; then
     # stepper is already running
@@ -12,34 +12,35 @@ else
   else
     # stepper is launched for the first time
     cd "$DIR"
+    SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
     if [ "`grep \"List.\" $1`" = "" ]; then
       touch $TMPFILE.ml
     elif [ "`grep \"module List =\" $1`" = "" ]; then
-      SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
       cp $SCRIPT_DIR/list.ml $TMPFILE.ml
     else
       touch $TMPFILE.ml
     fi
-    if [ -d "metro" ]; then
+    ROOT_DIR="`$SCRIPT_DIR/show-root $DIR`"
+    if [ -d "$ROOT_DIR/metro" ]; then
       # "metro" directory exists.  Expand open Metro etc. (for Ochadai use only)
       cat $1 | sed -e 's/(\*.*\*)//g' | sed -E "/open +Metro[[:>:]]/{
-          r metro/metro.ml
+          r $ROOT_DIR/metro/metro.ml
           d
       }
       /open +Kansai[[:>:]]/{
-          r kansai/kansai.ml
+          r $ROOT_DIR/kansai/kansai.ml
           d
       }
       /open +Higashi[[:>:]]/{
-          r higashi/higashi.ml
+          r $ROOT_DIR/higashi/higashi.ml
           d
       }
       /open +Global[[:>:]]/{
-          r global/global.ml
+          r $ROOT_DIR/global/global.ml
           d
       }
       /open +Seoul[[:>:]]/{
-          r seoul/seoul.ml
+          r $ROOT_DIR/seoul/seoul.ml
           d
       }" $1 >> $TMPFILE.ml
     else
