@@ -6,6 +6,13 @@ documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 for recommendations on how to structure this file.
 
+## [0.0.4] - 2025-05-04
+
+- run dune utop at the dune-project directory
+- change make button to dune build button
+- change tmp file name to OCaml legal name
+- search metro.ml etc. from the project root directory
+
 ## [0.0.3] - 2025-04-26
 
 - Launch evaluateBuffer when stepper produces no output

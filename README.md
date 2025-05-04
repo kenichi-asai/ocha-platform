@@ -10,11 +10,11 @@ course in Ochanomizu University.
 - Click <img src="media/resume.png" width="15px"> button to save the
   current file and evaluate it in a terminal.
 - Click ▷ button to save the current
-  file and execute `make` in a terminal.
+  file and execute `dune build` or `make` in a terminal.
 - Click settings button to set the
-  command for evaluating OCaml programs.  It defaults to `utop` if
-  `utop` is installed, `rlwrap ocaml` if `rlwrap` is installed,
-  `ocaml` otherwise.
+  command for evaluating OCaml programs.  It defaults to `dune utop` if
+  `dune` and `utop` are installed, `utop` if `utop` is installed,
+  `rlwrap ocaml` if `rlwrap` is installed, `ocaml` otherwise.
 
 ### Step execution
 - Click <img src="media/start.png" width="15px"> button to start step
