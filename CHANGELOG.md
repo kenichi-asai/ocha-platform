@@ -6,6 +6,10 @@ documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 for recommendations on how to structure this file.
 
+## [0.0.5] - 2025-05-24
+
+- use spawn to avoid ENOBUFS error and allow large output
+
 ## [0.0.4] - 2025-05-04
 
 - run dune utop at the dune-project directory
