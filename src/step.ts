@@ -156,7 +156,7 @@ async function stepperStart() {
 
   try {
     // execute stepper
-    const text = executeStepper("next", path);
+    const text = await executeStepper("next", path);
     if (!text) {
       evaluate.evaluateBuffer();
       return;
@@ -228,13 +228,37 @@ async function replaceContents(editor: vscode.TextEditor, text: string) {
   });
 }
 
-// execute stepper
-function executeStepper(mode: string, path: string): string | undefined {
-  const command = "env STEPPER_MODE=" + mode + " " + stepperPath + " " + path;
-  // console.log(command);
-  let text = child_process.execSync(command).toString();
-  // console.log(text);
+// spawn a process and obtain the result as a string
+// returns an empty string if something goes wrong
+function getLargeOutput(command: string, args: string[]): Promise<string> {
+  return new Promise((resolve) => {
+    // do not use child_process.execSync,
+    // because it leads to ENOBUFS error when the output is large
+    const child = child_process.spawn(command, args);
+    let output = '';
+    child.stdout.setEncoding('utf8');
 
+    child.stdout.on('data', (data) => {
+      output += data;
+    });
+
+    child.on('error', (err) => {
+      resolve('');
+    });
+
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve(output);
+      } else {
+        resolve('');
+      }
+    });
+  });
+}
+
+// execute stepper
+async function executeStepper(mode: string, path: string): Promise<string | undefined> {
+  let text = await getLargeOutput("env", ["STEPPER_MODE=" + mode, stepperPath, path]);
   if (text === "") return;
 
   const index = text.indexOf("(* Stepper Error: No more steps. *)");
@@ -617,7 +641,7 @@ function findMatchingIndex(lst: number[][], i: number): number | undefined {
 
 // called when "Ocha.stepper.next/skip/forward" is executed
 // mode is either "next", "skip", or "nextitem" (for "forward")
-function stepperNext(mode: string) {
+async function stepperNext(mode: string) {
   if (!stepperInstalled) {
     vscode.window.showInformationMessage("Stepper not installed.");
     return;
@@ -660,7 +684,7 @@ function stepperNext(mode: string) {
   fs.writeFileSync(fd, program);
 
   // execute stepper
-  const text = executeStepper(mode, tmpMlFileName);
+  const text = await executeStepper(mode, tmpMlFileName);
   fs.close(fd);
   afterPrev = 0;
   if (!text) return;
