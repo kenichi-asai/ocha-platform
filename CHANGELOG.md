@@ -6,6 +6,12 @@ documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 for recommendations on how to structure this file.
 
+## [0.0.6] - 2025-06-22
+
+- add comments to show-root to show what this script does
+- remove comments before step execution
+- expand module definition using open-module script
+
 ## [0.0.5] - 2025-05-24
 
 - use spawn to avoid ENOBUFS error and allow large output
