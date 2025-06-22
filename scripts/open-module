@@ -1,0 +1,45 @@
+#!/bin/bash
+if [ -z "$2" ]; then
+  echo "Usage: $0 (metro|...|tree|redBlack) file.ml"
+  exit 1
+fi
+
+TMPFILE="/tmp/${USER}_open_module_`date \"+%Y_%m_%d_%H_%M_%S\"`"
+cp $2 $TMPFILE
+# change the first character to upper case
+# for bash 4.0, something like ${$1^} should have worked
+MODULENAME=`echo $1 |\
+           awk '{printf "%s%s", toupper(substr($0,1,1)), substr($0,2)}'`
+
+if [ ! "`grep -E \"^ *module +$MODULENAME([^a-zA-Z0-9_]|$)\" $TMPFILE`" = "" ];
+then
+  # module declaration found
+  if [ "`grep -E \"open +$MODULENAME([^a-zA-Z0-9_]|$)\" $TMPFILE`" = "" ]; then
+    # "open Metro" not found; do nothing
+    cat $TMPFILE
+  else
+    # "open Metro" found; expand the contents of metro.ml
+    cat $MODULENAME/$MODULENAME.ml
+    # remove "Metro." and "open Metro"
+    cat $TMPFILE | sed "s/$MODULENAME\.//g" | sed -E "s/open +$MODULENAME//g"
+  fi
+
+  # module declaration not found
+elif [ ! "`grep -E \"open +$MODULENAME([^a-zA-Z0-9_]|$)\" $TMPFILE`" = "" ];
+then
+  # "open Metro" found; expand the contents of metro.ml
+  cat $MODULENAME/$MODULENAME.ml
+  # remove "Metro." and "open Metro"
+  cat $TMPFILE | sed "s/$MODULENAME\.//g" | sed -E "s/open +$MODULENAME//g"
+elif [ ! "`grep -E \"$MODULENAME\.\" $TMPFILE`" = "" ]; then
+  # "open Metro" not found, but "Metro." found.
+  # include module declaration
+  echo "module $MODULENAME = struct"
+  cat $MODULENAME/$MODULENAME.ml
+  echo "end"
+  cat $TMPFILE
+else
+  # nothing found; do nothing
+  cat $TMPFILE
+fi
+rm -f $TMPFILE

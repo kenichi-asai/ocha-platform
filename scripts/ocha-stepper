@@ -4,6 +4,7 @@ if [ -z "$1" ]; then
 elif [ "$1" = "-version" ]; then
   echo "4.14.2"
 else
+  SRCFILE="/tmp/${USER}_stepper_src_`date \"+%Y_%m_%d_%H_%M_%S\"`"
   TMPFILE="/tmp/${USER}_stepper_`date \"+%Y_%m_%d_%H_%M_%S\"`"
   DIR="`dirname $1`"
   if [ "$DIR" = "/tmp" ]; then
@@ -12,42 +13,38 @@ else
   else
     # stepper is launched for the first time
     cd "$DIR"
+    # check whether $1 does not have syntax errors
+    if [ ! "`ocamlc -stop-after parsing $1 2>&1`" = "" ]; then
+      exit 1
+    fi
+    # remove comments from $1 and store the result in $SRCFILE.ml
+    ocamlc -stop-after parsing -dsource $1 > $SRCFILE.ml 2>&1
     SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
-    if [ "`grep \"List.\" $1`" = "" ]; then
+    if [ "`grep \"List.\" $SRCFILE.ml`" = "" ]; then
       touch $TMPFILE.ml
-    elif [ "`grep \"module List =\" $1`" = "" ]; then
+    elif [ "`grep \"module List =\" $SRCFILE.ml`" = "" ]; then
       cp $SCRIPT_DIR/list.ml $TMPFILE.ml
     else
       touch $TMPFILE.ml
     fi
     ROOT_DIR="`$SCRIPT_DIR/show-root $DIR`"
     if [ -d "$ROOT_DIR/metro" ]; then
-      # "metro" directory exists.  Expand open Metro etc. (for Ochadai use only)
-      cat $1 | sed -e 's/(\*.*\*)//g' | sed -E "/open +Metro[[:>:]]/{
-          r $ROOT_DIR/metro/metro.ml
-          d
-      }
-      /open +Kansai[[:>:]]/{
-          r $ROOT_DIR/kansai/kansai.ml
-          d
-      }
-      /open +Higashi[[:>:]]/{
-          r $ROOT_DIR/higashi/higashi.ml
-          d
-      }
-      /open +Global[[:>:]]/{
-          r $ROOT_DIR/global/global.ml
-          d
-      }
-      /open +Seoul[[:>:]]/{
-          r $ROOT_DIR/seoul/seoul.ml
-          d
-      }" $1 >> $TMPFILE.ml
+      # For Ochadai use only #####
+      # "metro" directory exists.  Expand module definitions
+      # Include module definitions
+      $SCRIPT_DIR/open-module "metro" $SRCFILE.ml > $TMPFILE-1.ml
+      $SCRIPT_DIR/open-module "kansai" $TMPFILE-1.ml > $TMPFILE-2.ml
+      $SCRIPT_DIR/open-module "higashi" $TMPFILE-2.ml > $TMPFILE-3.ml
+      $SCRIPT_DIR/open-module "global" $TMPFILE-3.ml > $TMPFILE-4.ml
+      $SCRIPT_DIR/open-module "seoul" $TMPFILE-4.ml > $TMPFILE-5.ml
+      $SCRIPT_DIR/open-module "tree" $TMPFILE-5.ml > $TMPFILE-6.ml
+      $SCRIPT_DIR/open-module "redBlack" $TMPFILE-6.ml >> $TMPFILE.ml
+      # For Ochadai use only up to here #####
     else
       # No "metro" directory; do nothing (except for inclusion of List module)
-      cat $1 >> $TMPFILE.ml
+      cat $SRCFILE.ml >> $TMPFILE.ml
     fi
     stepper $TMPFILE.ml
-    rm -f $TMPFILE.ml $TMPFILE.cmi
+    rm -f $TMPFILE.ml $TMPFILE.cmi $SRCFILE.ml $TMPFILE-{1,2,3,4,5,6}.ml
   fi
 fi
