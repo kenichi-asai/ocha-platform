@@ -242,6 +242,11 @@ function getLargeOutput(command: string, args: string[]): Promise<string> {
       output += data;
     });
 
+    child.stderr.on('data', (data) => {
+      console.log(output + '\n' + data);
+      resolve('');
+    });
+
     child.on('error', (err) => {
       resolve('');
     });
