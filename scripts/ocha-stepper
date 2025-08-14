@@ -38,13 +38,14 @@ else
       $SCRIPT_DIR/open-module "global" $TMPFILE-3.ml > $TMPFILE-4.ml
       $SCRIPT_DIR/open-module "seoul" $TMPFILE-4.ml > $TMPFILE-5.ml
       $SCRIPT_DIR/open-module "tree" $TMPFILE-5.ml > $TMPFILE-6.ml
-      $SCRIPT_DIR/open-module "redBlack" $TMPFILE-6.ml >> $TMPFILE.ml
+      $SCRIPT_DIR/open-module "redBlack" $TMPFILE-6.ml > $TMPFILE-7.ml
+      $SCRIPT_DIR/open-module "heap" $TMPFILE-7.ml >> $TMPFILE.ml
       # For Ochadai use only up to here #####
     else
       # No "metro" directory; do nothing (except for inclusion of List module)
       cat $SRCFILE.ml >> $TMPFILE.ml
     fi
     stepper $TMPFILE.ml
-    rm -f $TMPFILE.ml $TMPFILE.cmi $SRCFILE.ml $TMPFILE-{1,2,3,4,5,6}.ml
+    rm -f $TMPFILE.ml $TMPFILE.cmi $SRCFILE.ml $TMPFILE-{1,2,3,4,5,6,7}.ml
   fi
 fi
