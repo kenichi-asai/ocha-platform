@@ -6,6 +6,11 @@ documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 for recommendations on how to structure this file.
 
+## [0.0.7] - 2025-08-16
+
+- ocha-stepper: support Heap module
+- step: output error messages to console.log
+
 ## [0.0.6] - 2025-06-22
 
 - add comments to show-root to show what this script does
