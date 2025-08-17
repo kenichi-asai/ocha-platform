@@ -147,6 +147,9 @@ if [ "$debug" = true ]; then
   echo "The output of the whole command follows:"
 fi
 
+# output only .ml files (not .mli files)
 for f in $(ocamldep -sort ${all_deps[@]}); do
-  echo "$f"
+  if [[ $f =~ .ml$ ]]; then
+    echo "$f"
+  fi
 done
