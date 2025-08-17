@@ -1,0 +1,33 @@
+#!/usr/bin/expect
+set USAGE "Usage: mod-use-file file ..."
+
+if { $argc < 1 } {
+  puts $USAGE
+  exit
+}
+
+# launch ocaml
+spawn -noecho "dune" "utop" "."
+
+set FIRST 1
+
+proc expect_sharp {use file} {
+  global FIRST MODE
+  if { $FIRST == 0 } {
+    # utop requires three "# " except for the first send
+    expect "# "
+    expect "# "
+  }
+  expect "# "
+  send "$use \"$file\";;\n"
+  set FIRST 0
+}
+
+# #mod_use all the files except for the last one
+for {set i 0} {$i < $argc - 1} {incr i} {
+  expect_sharp "#mod_use" [lindex $argv $i]
+}
+
+# #use the last file (main file)
+expect_sharp "#use" [lindex $argv $i]
+interact

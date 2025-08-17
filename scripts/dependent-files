@@ -1,0 +1,152 @@
+#!/bin/bash
+# Given a file, outputs a list of its dependent files in the order
+# suitable for #mod_use
+# Files in the user-defined labiraries are considered, but it is
+# assumed that they are accessible by their module names directly
+# rather than via the library module
+
+debug=false
+if [ "$1" = "-debug" ]; then
+  debug=true
+  shift
+fi
+
+include_libraries=false
+if [ "$1" = "-include-libraries" ]; then
+  include_libraries=true
+  shift
+fi
+
+if [ -z "$1" ]; then
+  echo "Usage: $0 [-debug] [-include-libraries] <sourcefile.ml>"
+  exit 1
+fi
+
+start_file=$(realpath "$1")
+start_dir=$(dirname "$start_file")
+cd "$start_dir"
+
+# Find the root directory by looking upward for dune-project
+current_dir="$start_dir"
+while [ "$current_dir" != "/" ] && [ ! -f "$current_dir/dune-project" ]; do
+  current_dir=$(dirname "$current_dir")
+done
+
+if [ ! -f "$current_dir/dune-project" ]; then
+  echo "Error: dune-project file not found in any parent directories."
+  exit 1
+fi
+
+root_dir="$current_dir"
+[ "$debug" = true ] && echo "Found project root: $root_dir"
+
+# Find all library directories by searching for dune files with
+# (library ...) stanza
+lib_dirs=()
+if [ "$include_libraries" == true ]; then
+  while IFS= read -r -d $'\0' dune_file; do
+    if grep -q '^(library[[:>:]]' "$dune_file"; then
+      lib_dirs+=( "$(dirname "$dune_file")" )
+    fi
+  done < <(find "$root_dir" -name dune -print0)
+
+  if [ "$debug" = true ] && [ ${#lib_dirs[@]} -eq 0 ]; then
+    echo "Warning: No library directories found; will search current dir only."
+  fi
+
+  if [ "$debug" = true ]; then
+    echo "Library directories found:"
+    for d in "${lib_dirs[@]}"; do
+      echo "  $d"
+    done
+  fi
+fi
+
+# Construct -I options string for ocamldep
+I_OPTIONS=()
+for d in "${lib_dirs[@]}"; do
+  I_OPTIONS+=("-I" "$d")
+done
+
+# Helper function to check if element is in array
+contains() {
+  local elem=$1; shift
+  for e in "$@"; do
+    [[ "$e" == "$elem" ]] && return 0
+  done
+  return 1
+}
+
+# Convert module name to possible source files
+possible_files() {
+  local modname=$1
+  # Look in current directory and all library dirs
+  echo "$modname.ml"
+  echo "$modname.mli"
+  for d in "${lib_dirs[@]}"; do
+    echo "$d/$modname.ml"
+    echo "$d/$modname.mli"
+  done
+}
+
+to_process=("$start_file")
+processed=()
+all_deps=()
+
+while [ ${#to_process[@]} -gt 0 ]; do
+  current=${to_process[0]}
+  to_process=("${to_process[@]:1}")
+
+  # Skip if already processed
+  if contains "$current" "${processed[@]}"; then
+    continue
+  fi
+
+  processed+=("$current")
+  all_deps+=("$current")
+
+  # Run ocamldep on current file (add root_dir prefix if missing)
+  current_path="$current"
+  if [[ "$current" != /* ]]; then
+    current_path="$start_dir/$current"
+  fi
+
+  # Run ocamldep with multiple -I options
+  deps_line=$(ocamldep -one-line -native "${I_OPTIONS[@]}"\
+                       "$current_path" 2>/dev/null |\
+            sed -e 's/cmx/ml/g' | grep "^$current_path :")
+
+  if [[ $deps_line =~ :[[:space:]]*(.*)$ ]]; then
+    deps=${BASH_REMATCH[1]}
+
+    for mod in $deps; do
+      mod_clean=$(echo "$mod" | sed -e 's/\.ml$//' -e 's/\.mli$//' )
+
+      for file in $(possible_files "$mod_clean"); do
+        # Check file existence and add to queue if not processed
+        if [ -f "$file" ]; then
+          current_file="$file"
+          if [[ "$current_file" != /* ]]; then
+            current_file="$start_dir/$current_file"
+          fi
+          if ! contains "$current_file" "${processed[@]}" && \
+             ! contains "$current_file" "${to_process[@]}"; then
+            to_process+=("$current_file")
+          fi
+        fi
+      done
+    done
+  fi
+done
+
+if [ "$debug" = true ]; then
+  echo "Transitive dependent files:"
+  for f in ${all_deps[@]}; do
+    echo "$f"
+  done
+  echo "The output of the whole command follows:"
+fi
+
+for f in $(ocamldep -sort ${all_deps[@]}); do
+  echo "$f"
+done
