@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import * as child_process from 'child_process';
 import * as fs from "fs";
-import * as evaluate from "./evaluate"
+import * as evaluate from "./evaluate";
 
 const tmpFileName = "/tmp/ochaTmpFile";
 const tmpMlFileName = tmpFileName + ".ml";
@@ -273,10 +273,10 @@ async function executeStepper(mode: string, path: string): Promise<string | unde
   }
 
   // remove (* from Step nn *)
-  text = text.replace(/\(\* from Step [0-9]+ \*\)/, "")
+  text = text.replace(/\(\* from Step [0-9]+ \*\)/, "");
 
   // remove (* forward *)
-  text = text.replace(/\(\* forward \*\)/, "")
+  text = text.replace(/\(\* forward \*\)/, "");
 
   history.push(text);
   return (text);
@@ -619,7 +619,7 @@ function findAllMatchingParenthesis(text: string): number[][] | undefined {
       i = text.indexOf('"', i);// advance to closing "
       // indexOf returns the index from the beginnig of the text
       if (i < 0) {
-        return undefined // Unclosed "
+        return undefined; // Unclosed "
       }
     }
   }
