@@ -26,11 +26,6 @@
         "icon": "$(run)"
       },
       {
-        "command": "Ocha.setOCamlCommandName",
-        "title": "Ocha: Set OCaml Command Name",
-        "icon": "$(settings-gear)"
-      },
-      {
         "command": "Ocha.stepper.start",
         "title": "Ocha: Save and Start Stepper",
         "icon": "./media/start.png"
@@ -63,11 +58,6 @@
     ],
     "menus": {
       "editor/title": [
-        {
-          "command": "Ocha.setOCamlCommandName",
-          "group": "navigation@-1",
-          "when": "resourceLangId == ocaml && !ochaPlatform.inStepperDocument"
-        },
         {
           "command": "Ocha.build",
           "group": "navigation@-2",
