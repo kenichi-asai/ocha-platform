@@ -79,9 +79,9 @@ export async function evaluateBuffer() {
   // obtain all the dependent files
   const depFilesPath: string = extensionPath + "/scripts/dependent-files";
   const output =
-    await child_process.execSync(depFilesPath + " " + editor.document.fileName)
+    child_process.execSync(depFilesPath + " " + editor.document.fileName)
       .toString();
-  const files = output.split('\n');
+  const files = output.split('\n').filter(line => line.trim() !== '');
 
   // load the obtained files
   const modUseFilePath: string = extensionPath + "/scripts/mod-use-file";
