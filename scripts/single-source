@@ -1,0 +1,160 @@
+#!/bin/bash
+# Given a list of dependent files as command line arguments, this
+# script creates a single source file where all the dependent files
+# are declared as modules.
+
+if [ "$#" -lt 3 ]; then
+  echo "Usage: $0 root_prefix main_dir_absolute_path full_path1 [full_path2 ...]"
+  exit 1
+fi
+
+root=$1
+main_dir_abs=$2
+shift 2
+
+dirs=()
+files_by_dir=()
+main_files=()
+
+find_dir_index() {
+  local dir_to_find="$1"
+  for i in "${!dirs[@]}"; do
+    if [[ "${dirs[$i]}" == "$dir_to_find" ]]; then
+      echo "$i"
+      return 0
+    fi
+  done
+  echo "-1"
+}
+
+# Normalize main_dir_abs: ensure it ends with a slash
+[[ "${main_dir_abs: -1}" != "/" ]] && main_dir_abs="${main_dir_abs}/"
+
+for fullpath in "$@"; do
+  relative=${fullpath#$root}
+
+  # Check if file is inside main_dir_abs using absolute path prefix
+  if [[ "$fullpath" == "$main_dir_abs"* ]]; then
+    # Strip the main_dir_abs prefix from fullpath for filename
+    filename=${fullpath#$main_dir_abs}
+    main_files+=("$filename")
+  else
+    if [[ "$relative" == */* ]]; then
+      dir=${relative%%/*}
+      file=${relative#*/}
+      idx=$(find_dir_index "$dir")
+
+      if [ "$idx" -eq -1 ]; then
+        dirs+=("$dir")
+        files_by_dir+=("$file")
+      else
+        files_by_dir[$idx]="${files_by_dir[$idx]} $file"
+      fi
+    else
+      # File directly under root but not under main_dir_abs
+      main_files+=("$relative")
+    fi
+  fi
+done
+
+#echo "Groups:"
+#for i in "${!dirs[@]}"; do
+#  IFS=' ' read -r -a files <<< "${files_by_dir[$i]}"
+#  echo "[${dirs[$i]}] = (${files[*]})"
+#done
+
+#echo "[main files] = (${main_files[*]})"
+
+# Capitalize the first letter of a string (compatible with Bash 3.2)
+capitalize() {
+  first_char=$(echo "${1:0:1}" | tr '[:lower:]' '[:upper:]')
+  rest="${1:1}"
+  echo "${first_char}${rest}"
+}
+
+# Example input variables:
+# Replace these with your actual grouped data:
+# dirs=(metro tree)
+# files_by_dir=(
+#   "m.ml n.ml"
+#   "tree.ml"
+# )
+# main_files=("report1.ml" "report3.ml")
+
+output_file="AllModules.ml"
+
+# Function to indent file contents
+indent_contents() {
+  local num_spaces=$1
+  local indent=""
+  local i
+
+  for (( i=0; i<num_spaces; i++ )); do
+    indent+=" "
+  done
+
+  sed "s/^/${indent}/"
+}
+
+# Start fresh output file
+# echo "(* This file is generated *)" > "$output_file"
+# echo "" >> "$output_file"
+
+for i in "${!dirs[@]}"; do
+  dir=${dirs[$i]}
+  files_str="${files_by_dir[$i]}"
+  IFS=' ' read -r -a files <<< "$files_str"
+
+  # Check for a file named like the directory (e.g., tree/tree.ml)
+  main_file_match=""
+  for f in "${files[@]}"; do
+    base="${f%.ml}"
+    if [[ "$base" == "$dir" ]]; then
+      main_file_match="$f"
+      break
+    fi
+  done
+
+  mod_dir=$(capitalize "$dir")
+
+  if [[ -n "$main_file_match" ]]; then
+    # Output single module with contents of dir.ml
+    echo "module $mod_dir = struct" # >> "$output_file"
+    cat "$dir/$main_file_match" | indent_contents 2 # >> "$output_file"
+    echo "end" # >> "$output_file"
+    echo "" # >> "$output_file"
+  else
+    # Output module with nested modules for each file
+    echo "module $mod_dir = struct" # >> "$output_file"
+    for f in "${files[@]}"; do
+      base="${f%.ml}"
+      mod_file=$(capitalize "$base")
+      echo "  module $mod_file = struct" # >> "$output_file"
+      cat "$dir/$f" | indent_contents 4 # >> "$output_file"
+      echo "  end" # >> "$output_file"
+      echo "" # >> "$output_file"
+    done
+    echo "end" # >> "$output_file"
+    echo "" # >> "$output_file"
+  fi
+done
+
+num_main=${#main_files[@]}
+
+for (( idx=0; idx<num_main; idx++ )); do
+  file=${main_files[$idx]}
+  base="${file%.ml}"
+  mod_file=$(capitalize "$base")
+
+  if (( idx < num_main - 1 )); then
+    echo "module $mod_file = struct" # >> "$output_file"
+    cat "$main_dir_abs$file" | indent_contents 2 # >> "$output_file"
+    echo "end" # >> "$output_file"
+    echo "" # >> "$output_file"
+  else
+    # Last main file output as is
+    cat "$file" # >> "$output_file"
+  fi
+done
+
+#echo "OCaml module aggregation complete. Output: $output_file"
