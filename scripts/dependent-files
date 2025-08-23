@@ -1,18 +1,20 @@
 #!/bin/bash
 # Given a file, outputs a list of its dependent files in the order
 # suitable for #mod_use
-# Files in the user-defined labiraries are considered, but it is
+# Files in the user-defined libraries are considered, but it is
 # assumed that they are accessible by their module names directly
 # rather than via the library module
 
 debug=false
 if [ "$1" = "-debug" ]; then
+  # show intermediate results
   debug=true
   shift
 fi
 
 include_libraries=false
 if [ "$1" = "-include-libraries" ]; then
+  # include libraries (mylib, list.ml) for stepper
   include_libraries=true
   shift
 fi
@@ -25,6 +27,11 @@ fi
 start_file=$(realpath "$1")
 start_dir=$(dirname "$start_file")
 cd "$start_dir"
+
+if [ "$debug" = true ]; then
+  echo "start_file = $start_file"
+  echo "start_dir = $start_dir"
+fi
 
 # Find the root directory by looking upward for dune-project
 current_dir="$start_dir"
@@ -62,8 +69,17 @@ if [ "$include_libraries" == true ]; then
   fi
 fi
 
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+
+if [ "$debug" = true ]; then
+  echo "SCRIPT_DIR = $SCRIPT_DIR"
+fi
+
 # Construct -I options string for ocamldep
 I_OPTIONS=()
+if [ "$include_libraries" == true ]; then
+  I_OPTIONS+=("-I" "$SCRIPT_DIR") # for List module
+fi
 for d in "${lib_dirs[@]}"; do
   I_OPTIONS+=("-I" "$d")
 done
