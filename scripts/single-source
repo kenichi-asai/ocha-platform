@@ -4,17 +4,19 @@
 # are declared as modules.
 
 if [ "$#" -lt 3 ]; then
-  echo "Usage: $0 root_prefix main_dir_absolute_path full_path1 [full_path2 ...]"
+  echo "Usage: $0 root_dir main_dir path1 [path2 ...]"
+  echo "(All dirs and paths must be absolute.)"
   exit 1
 fi
 
-root=$1
-main_dir_abs=$2
+root_dir=$1
+main_dir=$2
 shift 2
 
 dirs=()
-files_by_dir=()
-main_files=()
+files_by_dir=() # $root_dir/mylib/*.ml, $root_dir/tree/tree.ml
+main_files=()   # $main_dir/report1.ml
+other_paths=()  # /other/path/list.ml
 
 find_dir_index() {
   local dir_to_find="$1"
@@ -27,16 +29,20 @@ find_dir_index() {
   echo "-1"
 }
 
-# Normalize main_dir_abs: ensure it ends with a slash
-[[ "${main_dir_abs: -1}" != "/" ]] && main_dir_abs="${main_dir_abs}/"
+# Normalize root_dir and main_dir: ensure they end with a slash
+[[ "${root_dir: -1}" != "/" ]] && root_dir="${root_dir}/"
+[[ "${main_dir: -1}" != "/" ]] && main_dir="${main_dir}/"
 
 for fullpath in "$@"; do
-  relative=${fullpath#$root}
+  relative=${fullpath#$root_dir}
 
-  # Check if file is inside main_dir_abs using absolute path prefix
-  if [[ "$fullpath" == "$main_dir_abs"* ]]; then
-    # Strip the main_dir_abs prefix from fullpath for filename
-    filename=${fullpath#$main_dir_abs}
+  # If $relative does not start with $root_dir, it's list.ml.
+  if [[ "$relative" == "$fullpath" ]]; then
+    other_paths+=("$fullpath")
+  # Check if file is inside main_dir using absolute path prefix
+  elif [[ "$fullpath" == "$main_dir"* ]]; then
+    # Strip the main_dir prefix from fullpath for filename
+    filename=${fullpath#$main_dir}
     main_files+=("$filename")
   else
     if [[ "$relative" == */* ]]; then
@@ -51,8 +57,9 @@ for fullpath in "$@"; do
         files_by_dir[$idx]="${files_by_dir[$idx]} $file"
       fi
     else
-      # File directly under root but not under main_dir_abs
-      main_files+=("$relative")
+      # File directly under root_dir but not under main_dir.  Ignore it.
+      # main_files+=("$relative")
+      echo "ignored: $relative"
     fi
   fi
 done
@@ -80,8 +87,9 @@ capitalize() {
 #   "tree.ml"
 # )
 # main_files=("report1.ml" "report3.ml")
+# other_paths=("/other/path/list.ml")
 
-output_file="AllModules.ml"
+output_file="/tmp/${USER}_single_source_`date \"+%Y_%m_%d_%H_%M_%S\"`.ml"
 
 # Function to indent file contents
 indent_contents() {
@@ -99,6 +107,21 @@ indent_contents() {
 # Start fresh output file
 # echo "(* This file is generated *)" > "$output_file"
 # echo "" >> "$output_file"
+
+num_others=${#other_paths[@]}
+
+for (( idx=0; idx<num_others; idx++ )); do
+  other_path=${other_paths[$idx]}
+  other_dir=$(dirname "$other_path")
+  other_file=$(basename "$other_path")
+  other_base="${other_file%.ml}"
+  other_mod_file=$(capitalize "$other_base")
+
+  echo "module $other_mod_file = struct" >> "$output_file"
+  cat "$other_path" | indent_contents 2 >> "$output_file"
+  echo "end" >> "$output_file"
+  echo "" >> "$output_file"
+done
 
 for i in "${!dirs[@]}"; do
   dir=${dirs[$i]}
@@ -119,23 +142,23 @@ for i in "${!dirs[@]}"; do
 
   if [[ -n "$main_file_match" ]]; then
     # Output single module with contents of dir.ml
-    echo "module $mod_dir = struct" # >> "$output_file"
-    cat "$dir/$main_file_match" | indent_contents 2 # >> "$output_file"
-    echo "end" # >> "$output_file"
-    echo "" # >> "$output_file"
+    echo "module $mod_dir = struct" >> "$output_file"
+    cat "$root_dir$dir/$main_file_match" | indent_contents 2 >> "$output_file"
+    echo "end" >> "$output_file"
+    echo "" >> "$output_file"
   else
     # Output module with nested modules for each file
-    echo "module $mod_dir = struct" # >> "$output_file"
+    echo "module $mod_dir = struct" >> "$output_file"
     for f in "${files[@]}"; do
       base="${f%.ml}"
       mod_file=$(capitalize "$base")
-      echo "  module $mod_file = struct" # >> "$output_file"
-      cat "$dir/$f" | indent_contents 4 # >> "$output_file"
-      echo "  end" # >> "$output_file"
-      echo "" # >> "$output_file"
+      echo "  module $mod_file = struct" >> "$output_file"
+      cat "$root_dir$dir/$f" | indent_contents 4 >> "$output_file"
+      echo "  end" >> "$output_file"
+      echo "" >> "$output_file"
     done
-    echo "end" # >> "$output_file"
-    echo "" # >> "$output_file"
+    echo "end" >> "$output_file"
+    echo "" >> "$output_file"
   fi
 done
 
@@ -147,14 +170,15 @@ for (( idx=0; idx<num_main; idx++ )); do
   mod_file=$(capitalize "$base")
 
   if (( idx < num_main - 1 )); then
-    echo "module $mod_file = struct" # >> "$output_file"
-    cat "$main_dir_abs$file" | indent_contents 2 # >> "$output_file"
-    echo "end" # >> "$output_file"
-    echo "" # >> "$output_file"
+    echo "module $mod_file = struct" >> "$output_file"
+    cat "$main_dir$file" | indent_contents 2 >> "$output_file"
+    echo "end" >> "$output_file"
+    echo "" >> "$output_file"
   else
     # Last main file output as is
-    cat "$file" # >> "$output_file"
+    cat "$main_dir$file" >> "$output_file"
   fi
 done
 
 #echo "OCaml module aggregation complete. Output: $output_file"
+echo "$output_file"
