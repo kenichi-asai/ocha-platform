@@ -55,7 +55,7 @@ if [ "$include_libraries" == true ]; then
     if grep -q '^(library[[:>:]]' "$dune_file"; then
       lib_dirs+=( "$(dirname "$dune_file")" )
     fi
-  done < <(find "$root_dir" -name dune -print0)
+  done < <(find "$root_dir" -maxdepth 2 -name dune -print0)
 
   if [ "$debug" = true ] && [ ${#lib_dirs[@]} -eq 0 ]; then
     echo "Warning: No library directories found; will search current dir only."
