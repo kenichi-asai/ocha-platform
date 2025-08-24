@@ -14,7 +14,6 @@
 (**************************************************************************)
 
 (* List operations *)
-module List = struct
 let rec length_aux len = function
     [] -> len
   | _::l -> length_aux (len + 1) l
@@ -430,4 +429,3 @@ let sort_uniq cmp l =
   in
   let len = length l in
   if len < 2 then l else sort len l
-end;;

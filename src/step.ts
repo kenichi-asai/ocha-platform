@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import * as child_process from 'child_process';
+import * as path from 'path';
 import * as fs from "fs";
 import * as evaluate from "./evaluate";
 
@@ -8,6 +9,9 @@ const tmpMlFileName = tmpFileName + ".ml";
 const tmpCmiFileName = tmpFileName + ".cmi";
 
 let stepperPath: string = "stepper";
+
+// the path to ocha-platform extension
+let extensionPath: string = "";
 
 const kind = vscode.window.activeColorTheme.kind;
 
@@ -79,6 +83,8 @@ let disposable: vscode.Disposable;
 export async function activate(context: vscode.ExtensionContext) {
   console.log('"ocha.step" is now active!');
 
+  extensionPath = context.extensionPath;
+
   // the commands have been defined in the package.json file
   const stepperStartCommand = vscode.commands.registerCommand(
     "Ocha.stepper.start", () => { stepperStart(); }
@@ -109,10 +115,6 @@ export async function activate(context: vscode.ExtensionContext) {
     "Ocha.stepper.end", () => { stepperEnd(); }
   );
   context.subscriptions.push(stepperEndCommand);
-
-  // TODO: should switch between stepper and ocha-stepper according to
-  // a global flag
-  stepperPath = context.extensionPath + "/scripts/ocha-stepper";
 
   // check if a stepper is installed
   try {
@@ -151,12 +153,33 @@ async function stepperStart() {
     if (!result) return;
   }
 
-  // absolute path of the file to be step executed
-  const path = editor.document.uri.path;
+  // obtain all the dependent files
+  const filePath = editor.document.uri.path;
+  const depFilesPath: string = extensionPath + "/scripts/dependent-files";
+  const output =
+    child_process.execSync(depFilesPath + " -include-libraries " + filePath)
+      .toString();
+  const files = output.split('\n').filter(line => line.trim() !== '');
+
+  let projectMainDir = path.dirname(editor.document.uri.fsPath);
+  let projectRootDir = projectMainDir;
+  // check if the file to be executed is in the dune project
+  try {
+    projectRootDir = child_process.execSync(
+      extensionPath + "/scripts/show-root " + projectMainDir).toString().trim();
+  } catch (error) {
+    vscode.window.showErrorMessage('Error: no dune-project found.');
+    return;
+  }
+
+  // create a single file that contains all the necessary modules
+  const singleSourcePath: string = extensionPath + "/scripts/single-source";
+  child_process.execSync(singleSourcePath + " " + tmpMlFileName + " "
+    + projectRootDir + " " + projectMainDir + " " + files.join(' '));
 
   try {
     // execute stepper
-    const text = await executeStepper("next", path);
+    const text = await executeStepper("next", tmpMlFileName);
     if (!text) {
       evaluate.evaluateBuffer();
       return;
@@ -262,8 +285,10 @@ function getLargeOutput(command: string, args: string[]): Promise<string> {
 }
 
 // execute stepper
-async function executeStepper(mode: string, path: string): Promise<string | undefined> {
-  let text = await getLargeOutput("env", ["STEPPER_MODE=" + mode, stepperPath, path]);
+async function executeStepper(mode: string, singlePath: string)
+  : Promise<string | undefined> {
+  let text = await getLargeOutput("env",
+    ["STEPPER_MODE=" + mode, stepperPath, singlePath]);
   if (text === "") return;
 
   const index = text.indexOf("(* Stepper Error: No more steps. *)");
